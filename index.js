@@ -9,7 +9,9 @@ const DICCIONARIO_TECNOLOGIAS = [
     'typescript', 'react', 'angular', 'vue', 'docker', 'kubernetes',
     'django', 'spring', 'pandas', 'looker', 'selenium', 'power bi', 'tableau',
     'spark', 'hadoop', 'ruby', 'rails', 'php', 'laravel',
-    'flutter', 'dart', 'swift', 'kotlin', 'rust', 'go'
+    'flutter', 'dart', 'swift', 'kotlin', 'rust', 'go', 'r',
+    'iso 27001', 'nist', 'firewall', 'fortinet', 'cisco', 'owasp', 'siem',
+    'soc', 'pentesting', 'linux', 'ubuntu', 'kali'
 ];
 
 // Pausa la ejecución del script utilizando promesas
@@ -146,10 +148,14 @@ async function ejecutarPipeline() {
 
                     const resultadoDetalle = await obtenerDetalleOferta(enlace);
 
-                    // Enrutador de lógica: Aplica un borrado suave si está cerrada, o UPSERT si está abierta
+                    // Enrutador de lógica según el estado de la oferta
                     if (resultadoDetalle.cerrada) {
                         await marcarComoCerradaEnBD(enlace);
+                    } else if (resultadoDetalle.tecnologias.length === 0) {
+                        // Ignora la oferta si el arreglo quedó vacío
+                        console.log(`Oferta ignorada (Sin tecnologías clave del diccionario)`);
                     } else {
+                        // Solo llega aquí si está abierta Y tiene al menos 1 tecnología
                         const ofertaEstructurada = {
                             titulo: titulo,
                             url: enlace,
