@@ -1,22 +1,24 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const pool = require('./database');
 
-// Pausa la ejecución del script utilizando promesas
-const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Define un diccionario maestro con las tecnologías clave del mercado de TI.
-// Este diccionario se puede ampliar o modificar según las necesidades específicas del análisis.
+// Define un diccionario maestro con las tecnologías clave del mercado de TI
 const DICCIONARIO_TECNOLOGIAS = [
     'node', 'node.js', 'python', 'sql', 'postgresql', 'mysql', 'mongodb',
     'azure', 'aws', 'gcp', 'sas', 'c++', 'c#', 'java', 'javascript',
     'typescript', 'react', 'angular', 'vue', 'docker', 'kubernetes',
-    'django', 'spring', 'pandas', 'looker'
+    'django', 'spring', 'pandas', 'looker', 'selenium', 'power bi', 'tableau',
+    'spark', 'hadoop', 'scala', 'ruby', 'rails', 'php', 'laravel',
+    'flutter', 'dart', 'swift', 'kotlin', 'go', 'rust'
 ];
+
+// Pausa la ejecución del script utilizando promesas
+const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Extrae el contenido detallado de una oferta específica aislando la caja de descripción
 async function obtenerDetalleOferta(urlOferta) {
     try {
-        console.log(`URL consultado: ${urlOferta}`);
+        console.log(`Extrayendo: ${urlOferta}`);
         const respuesta = await axios.get(urlOferta);
         const $ = cheerio.load(respuesta.data);
 
@@ -28,63 +30,79 @@ async function obtenerDetalleOferta(urlOferta) {
             return textoLimpio.includes(tecnologia);
         });
 
-        // Retorna un arreglo dinámico con las coincidencias
         return tecnologiasEncontradas;
-
     } catch (error) {
         console.error(`Error al acceder al detalle de la oferta:`, error.message);
-        // Retorna un arreglo vacío en caso de error para mantener la consistencia del tipo de dato
         return [];
     }
 }
 
-// Orquesta el flujo principal de extracción de datos
+// Inserta un registro en PostgreSQL previniendo duplicados mediante la URL
+async function guardarOfertaEnBD(oferta) {
+    const query = `
+        INSERT INTO ofertas_laborales (titulo, url, tecnologias_requeridas)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (url) DO NOTHING;
+    `;
+
+    const values = [oferta.titulo, oferta.url, oferta.tecnologiasRequeridas];
+
+    try {
+        const resultado = await pool.query(query, values);
+
+        // rowCount indica cuántas filas fueron afectadas. 0 significa que se activó el ON CONFLICT
+        if (resultado.rowCount > 0) {
+            console.log(`Oferta nueva guardada: ${oferta.titulo}`);
+        } else {
+            console.log(`Oferta duplicada ignorada.`);
+        }
+    } catch (error) {
+        console.error(`Error de persistencia:`, error.message);
+    }
+}
+
+// Orquesta el flujo principal de extracción y almacenamiento de datos
 async function ejecutarPipeline() {
     console.log("Inicio del pipeline de extracción.\n");
 
-    const listaTotalOfertas = [];
     const urlIndice = 'https://www.chumijobs.com/searchjob2/?search&pais=81&categoria';
 
     try {
-        console.log("Paso 1: Descarga página inicial.");
+        console.log("Descarga página de inicio.");
         const respuestaIndice = await axios.get(urlIndice);
         const $ = cheerio.load(respuestaIndice.data);
 
-        // Selecciona temporalmente solo los primeros 4 elementos para evitar sobrecarga en la prueba
         const ofertasEnIndice = $('.card-job').slice(0, 4);
 
-        // Itera sobre las ofertas seleccionadas usando un bucle for...of para manejar la asincronía correctamente
         for (const elemento of ofertasEnIndice) {
             const titulo = $(elemento).find('strong.text-xs').text().trim();
-
-            // Busca la etiqueta 'a' que envuelve a la tarjeta para obtener el enlace
             const enlace = $(elemento).parent('a').attr('href') || $(elemento).closest('a').attr('href');
 
             if (titulo && enlace) {
                 console.log(`\nProcesando: ${titulo}`);
-
-                // Pausa antes de entrar al detalle para simular comportamiento humano
                 await esperar(1500);
 
-                // Llama a la función secundaria para obtener los datos profundos
                 const tecnologias = await obtenerDetalleOferta(enlace);
 
-                // Construye el objeto final combinando índice y detalle
                 const ofertaEstructurada = {
                     titulo: titulo,
                     url: enlace,
                     tecnologiasRequeridas: tecnologias
                 };
 
-                listaTotalOfertas.push(ofertaEstructurada);
+                // Llama al módulo de base de datos para insertar el registro
+                await guardarOfertaEnBD(ofertaEstructurada);
             }
         }
 
-        console.log("\nMuestra de datos consolidados:");
-        console.log(JSON.stringify(listaTotalOfertas, null, 2));
+        console.log("\nPipeline finalizado con éxito.");
 
     } catch (error) {
         console.error("Error crítico en el pipeline:", error.message);
+    } finally {
+        // Cierra el pool de conexiones para liberar la terminal
+        await pool.end();
+        console.log("Conexión cerrada.");
     }
 }
 
