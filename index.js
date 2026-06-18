@@ -2,16 +2,36 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const pool = require('./database');
 
-// Define un diccionario maestro con las tecnologías clave del mercado de TI
+// Define un diccionario maestro con las tecnologías clave del mercado de TI actual
 const DICCIONARIO_TECNOLOGIAS = [
-    'node', 'node.js', 'python', 'sql', 'postgresql', 'mysql', 'mongodb',
-    'azure', 'aws', 'gcp', 'sas', 'c++', 'c#', 'java', 'javascript',
-    'typescript', 'react', 'angular', 'vue', 'docker', 'kubernetes',
-    'django', 'spring', 'pandas', 'looker', 'selenium', 'power bi', 'tableau',
-    'spark', 'hadoop', 'ruby', 'rails', 'php', 'laravel',
-    'flutter', 'dart', 'swift', 'kotlin', 'rust', 'go', 'r',
+    // Lenguajes Core
+    'node', 'node.js', 'python', 'c++', 'c#', 'java', 'javascript', 'typescript',
+    'ruby', 'php', 'go', 'rust', 'r', 'dart', 'swift', 'kotlin', 'scala',
+
+    // Bases de Datos & Caché
+    'sql', 'postgresql', 'mysql', 'mongodb', 'oracle', 'redis', 'elasticsearch',
+
+    // Cloud Computing
+    'azure', 'aws', 'gcp', 'bigquery',
+
+    // Data Analytics, Engineering & IA
+    'sas', 'pandas', 'looker', 'power bi', 'tableau', 'spark', 'hadoop',
+    'snowflake', 'databricks', 'airflow', 'dbt', 'kafka',
+    'machine learning', 'deep learning', 'tensorflow', 'pytorch', 'llm', 'openai', 'scikit-learn',
+
+    // Frameworks & Librerías Web
+    'react', 'angular', 'vue', 'next.js', 'django', 'spring', 'rails', 'laravel', 'graphql',
+
+    // DevOps, CI/CD & Infraestructura
+    'docker', 'kubernetes', 'linux', 'ubuntu', 'terraform', 'jenkins', 'ansible',
+    'gitlab', 'github actions', 'prometheus', 'grafana',
+
+    // Ciberseguridad (Blue Team / SecOps)
     'iso 27001', 'nist', 'firewall', 'fortinet', 'cisco', 'owasp', 'siem',
-    'soc', 'pentesting', 'linux', 'ubuntu', 'kali'
+    'soc', 'pentesting', 'kali', 'splunk', 'wireshark', 'mitre', 'iam', 'devsecops',
+
+    // Testing & Mobile
+    'selenium', 'flutter'
 ];
 
 // Pausa la ejecución del script utilizando promesas
