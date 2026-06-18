@@ -9,7 +9,7 @@ const DICCIONARIO_TECNOLOGIAS = [
     'typescript', 'react', 'angular', 'vue', 'docker', 'kubernetes',
     'django', 'spring', 'pandas', 'looker', 'selenium', 'power bi', 'tableau',
     'spark', 'hadoop', 'ruby', 'rails', 'php', 'laravel',
-    'flutter', 'dart', 'swift', 'kotlin', 'rust'
+    'flutter', 'dart', 'swift', 'kotlin', 'rust', 'go'
 ];
 
 // Pausa la ejecución del script utilizando promesas
@@ -22,37 +22,68 @@ const HEADERS_NAVEGADOR = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
 };
 
-// Extrae el contenido detallado de una oferta específica aislando la caja de descripción
+// Extrae el detalle de la oferta, filtra tecnologías por palabra exacta y detecta caducidad
 async function obtenerDetalleOferta(urlOferta) {
     try {
         console.log(`Extrayendo: ${urlOferta}`);
-        // Envía la petición con los headers camuflados
         const respuesta = await axios.get(urlOferta, { headers: HEADERS_NAVEGADOR });
         const $ = cheerio.load(respuesta.data);
 
-        // Aísla el texto buscando específicamente el div de la descripción y lo normaliza a minúsculas
+        // 1. Detección de oferta caducada
+        const alertaCierre = $('.alert.alert-primary').text().toLowerCase();
+        if (alertaCierre.includes('cerrado su proceso de postulación')) {
+            // Retorna un objeto indicando que está cerrada para que el pipeline actúe
+            return { cerrada: true, tecnologias: [] };
+        }
+
+        // 2. Extracción de texto limpio
         const textoLimpio = $('.desc-empresa .col-md-12').text().toLowerCase();
 
-        // Filtra el diccionario maestro devolviendo únicamente las tecnologías que se encuentran en el texto
+        // 3. Filtrado con expresiones regulares (búsqueda de palabra exacta)
         const tecnologiasEncontradas = DICCIONARIO_TECNOLOGIAS.filter(tecnologia => {
-            return textoLimpio.includes(tecnologia);
+            // Escapa caracteres especiales
+            const techEscapada = tecnologia.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Crea el patrón que exige que la tecnología esté rodeada de espacios o signos de puntuación
+            const regex = new RegExp(`(^|\\W)${techEscapada}(\\W|$)`, 'i');
+
+            return regex.test(textoLimpio);
         });
 
-        return tecnologiasEncontradas;
+        return { cerrada: false, tecnologias: tecnologiasEncontradas };
+
     } catch (error) {
         console.error(`Error al acceder al detalle de la oferta:`, error.message);
-        return [];
+        return { cerrada: false, tecnologias: [] };
     }
 }
 
-// Inserta o actualiza un registro en PostgreSQL (operación UPSERT)
-async function guardarOfertaEnBD(oferta) {
-    // Utiliza EXCLUDED para referenciar los valores nuevos en caso de conflicto por URL
+// Actualiza el estado de una oferta a "cerrada" sin alterar sus tecnologías históricas
+async function marcarComoCerradaEnBD(url) {
+    // Al usar UPDATE con la URL, si la oferta es antigua se marca como cerrada. 
+    // Si la oferta es nueva y ya está cerrada, se ignora
     const query = `
-        INSERT INTO ofertas_laborales (titulo, url, tecnologias_requeridas)
-        VALUES ($1, $2, $3)
+        UPDATE ofertas_laborales 
+        SET estado = 'cerrada' 
+        WHERE url = $1;
+    `;
+    try {
+        const resultado = await pool.query(query, [url]);
+        if (resultado.rowCount > 0) {
+            console.log(`Oferta antigua detectada como CERRADA. Historial conservado.`);
+        }
+    } catch (error) {
+        console.error(`Error al actualizar estado de oferta:`, error.message);
+    }
+}
+
+// Inserta o actualiza un registro en PostgreSQL manteniendo el estado abierto
+async function guardarOfertaEnBD(oferta) {
+    const query = `
+        INSERT INTO ofertas_laborales (titulo, url, tecnologias_requeridas, estado)
+        VALUES ($1, $2, $3, 'abierta')
         ON CONFLICT (url) DO UPDATE 
         SET tecnologias_requeridas = EXCLUDED.tecnologias_requeridas,
+            estado = 'abierta',
             fecha_extraccion = CURRENT_TIMESTAMP;
     `;
 
@@ -111,18 +142,21 @@ async function ejecutarPipeline() {
 
                 if (titulo && enlace) {
                     console.log(`\nProcesando: ${titulo}`);
-                    // Mantiene la ética de recolección y evita bloqueos
                     await esperar(1500);
 
-                    const tecnologias = await obtenerDetalleOferta(enlace);
+                    const resultadoDetalle = await obtenerDetalleOferta(enlace);
 
-                    const ofertaEstructurada = {
-                        titulo: titulo,
-                        url: enlace,
-                        tecnologiasRequeridas: tecnologias
-                    };
-
-                    await guardarOfertaEnBD(ofertaEstructurada);
+                    // Enrutador de lógica: Aplica un borrado suave si está cerrada, o UPSERT si está abierta
+                    if (resultadoDetalle.cerrada) {
+                        await marcarComoCerradaEnBD(enlace);
+                    } else {
+                        const ofertaEstructurada = {
+                            titulo: titulo,
+                            url: enlace,
+                            tecnologiasRequeridas: resultadoDetalle.tecnologias
+                        };
+                        await guardarOfertaEnBD(ofertaEstructurada);
+                    }
                 }
             }
 
