@@ -9,7 +9,7 @@ const DICCIONARIO_TECNOLOGIAS = [
     'typescript', 'react', 'angular', 'vue', 'docker', 'kubernetes',
     'django', 'spring', 'pandas', 'looker', 'selenium', 'power bi', 'tableau',
     'spark', 'hadoop', 'scala', 'ruby', 'rails', 'php', 'laravel',
-    'flutter', 'dart', 'swift', 'kotlin', 'go', 'rust'
+    'flutter', 'dart', 'swift', 'kotlin', 'rust'
 ];
 
 // Pausa la ejecución del script utilizando promesas
@@ -37,25 +37,22 @@ async function obtenerDetalleOferta(urlOferta) {
     }
 }
 
-// Inserta un registro en PostgreSQL previniendo duplicados mediante la URL
+// Inserta o actualiza un registro en PostgreSQL (operación UPSERT)
 async function guardarOfertaEnBD(oferta) {
+    // Utiliza EXCLUDED para referenciar los valores nuevos en caso de conflicto por URL
     const query = `
         INSERT INTO ofertas_laborales (titulo, url, tecnologias_requeridas)
         VALUES ($1, $2, $3)
-        ON CONFLICT (url) DO NOTHING;
+        ON CONFLICT (url) DO UPDATE 
+        SET tecnologias_requeridas = EXCLUDED.tecnologias_requeridas,
+            fecha_extraccion = CURRENT_TIMESTAMP;
     `;
 
     const values = [oferta.titulo, oferta.url, oferta.tecnologiasRequeridas];
 
     try {
-        const resultado = await pool.query(query, values);
-
-        // rowCount indica cuántas filas fueron afectadas. 0 significa que se activó el ON CONFLICT
-        if (resultado.rowCount > 0) {
-            console.log(`Oferta nueva guardada: ${oferta.titulo}`);
-        } else {
-            console.log(`Oferta duplicada ignorada.`);
-        }
+        await pool.query(query, values);
+        console.log(`Oferta procesada (Insertada/Actualizada): ${oferta.titulo}`);
     } catch (error) {
         console.error(`Error de persistencia:`, error.message);
     }
