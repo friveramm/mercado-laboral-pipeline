@@ -1,0 +1,45 @@
+name: Pipeline de Analisis de Mercado Laboral
+
+# Define gatillos de ejecución del flujo de trabajo
+on:
+  # Ejecución programada (Cron) - Todos los días a las 08:00 AM UTC (04:00 AM Chile)
+  schedule:
+    - cron: '0 8 * * *'
+  # Permite ejecución manual desde la interfaz web de GitHub para pruebas
+  workflow_dispatch:
+
+jobs:
+  extraccion-y-carga:
+    name: Ejecutar Scrapers Node.js
+    # Define el sistema operativo del servidor efímero
+    runs-on: ubuntu-latest
+
+    steps:
+      # Descarga el código del repositorio al servidor
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      # Configura el entorno de ejecución de Node.js
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Instala las dependencias necesarias de forma explícita para asegurar consistencia
+      - name: Instalar dependencias
+        run: npm install axios cheerio pg dotenv
+
+      # Ejecuta el scraper de Chumi y el consumidor de API de GetOnBoard
+      # Inyecta las variables de entorno desde los secretos del repositorio de forma segura
+      - name: Ejecutar procesos de ingesta de datos
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          echo "Iniciando extracción de Chumi Jobs..."
+          node index.js
+          echo "Iniciando extracción de GetOnBoard..."
+          node getonboard.js
