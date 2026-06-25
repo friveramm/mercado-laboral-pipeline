@@ -77,7 +77,7 @@ async function ejecutarPipelineGetOnBoard() {
         try {
             const respuesta = await axios.get(urlApi);
             const trabajos = respuesta.data.data;
-            console.log(`Se obtuvieron ${trabajos.length} ofertas en como raw data.`);
+            console.log(`Se obtuvieron ${trabajos.length} ofertas como raw data.`);
 
             let guardadas = 0;
 
