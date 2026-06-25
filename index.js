@@ -21,6 +21,7 @@ const DICCIONARIO_TECNOLOGIAS = [
 
     // Frameworks & Librerías Web
     'react', 'angular', 'vue', 'next.js', 'django', 'spring', 'rails', 'laravel', 'graphql',
+    '.net', 'sqlalchemy',
 
     // DevOps, CI/CD & Infraestructura
     'docker', 'kubernetes', 'linux', 'ubuntu', 'terraform', 'jenkins', 'ansible',
@@ -31,7 +32,10 @@ const DICCIONARIO_TECNOLOGIAS = [
     'soc', 'pentesting', 'kali', 'splunk', 'wireshark', 'mitre', 'iam', 'devsecops',
 
     // Testing & Mobile
-    'selenium', 'flutter'
+    'selenium', 'flutter',
+
+    // Inteligencia Artificial & LLMs
+    'ia', 'ai', 'llm', 'chatgpt', 'gpt', 'openai', 'claude', 'anthropic'
 ];
 
 // Pausa la ejecución del script utilizando promesas
