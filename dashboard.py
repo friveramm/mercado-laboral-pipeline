@@ -74,6 +74,19 @@ st.markdown("Datos extraídos del portal de empleo https://chumi-it.com/ y https
 # Carga de datos
 df_main, df_techs = cargar_y_procesar_datos()
 
+# Barra lateral para filtros de mercado
+st.sidebar.title("Filtros de Mercado")
+st.sidebar.markdown("Filtra los resultados por fuente de origen.")
+
+# Crear lista de portales disponibles agregando la opción "Todos"
+portales_disponibles = ['Todos'] + list(df_main['portal'].unique())
+portal_seleccionado = st.sidebar.selectbox("Plataforma de Empleo:", portales_disponibles)
+
+# Aplicar el filtro si el usuario selecciona un portal específico
+if portal_seleccionado != 'Todos':
+    df_main = df_main[df_main['portal'] == portal_seleccionado]
+    df_techs = df_techs[df_techs['portal'] == portal_seleccionado]
+
 # Metricas KPI principales
 col1, col2, col3 = st.columns(3)
 with col1:
