@@ -50,9 +50,30 @@ async function guardarOfertaEnBD(oferta) {
     }
 }
 
+// Limpia la base de datos cerrando las ofertas que ya no vienen en la API
+async function marcarOfertasCerradas(fechaInicio) {
+    const query = `
+        UPDATE ofertas_laborales 
+        SET estado = 'cerrada' 
+        WHERE portal = 'GetOnBoard' 
+        AND estado = 'abierta' 
+        AND fecha_extraccion < $1;
+    `;
+
+    try {
+        const res = await pool.query(query, [fechaInicio]);
+        console.log(`[Mantenimiento DB] Se encontraron y marcaron ${res.rowCount} ofertas como 'cerradas'.`);
+    } catch (error) {
+        console.error(`[Error de Mantenimiento] ${error.message}`);
+    }
+}
+
 // Orquesta la petición a la API de GetOnBoard, filtra por país y extrae datos
 async function ejecutarPipelineGetOnBoard() {
     console.log("Inicio de la extracción mediante API REST (GetOnBoard)...");
+
+    // PASO 1: Capturar la hora exacta de inicio en formato ISO
+    const horaInicioScript = new Date().toISOString();
 
     const categorias = [
         'programacion',
@@ -70,8 +91,6 @@ async function ejecutarPipelineGetOnBoard() {
 
     for (const categoria of categorias) {
         console.log(`\nConsultando categoría: ${categoria.toUpperCase()}`);
-
-        // Se añade expand[]=tags para que devuelva los nombres de las tecnologías
         const urlApi = `https://www.getonbrd.com/api/v0/categories/${categoria}/jobs?per_page=100&expand[]=tags`;
 
         try {
@@ -88,17 +107,13 @@ async function ejecutarPipelineGetOnBoard() {
 
                 if (paisesNormalizados.includes('CHILE')) {
 
-                    // 1. Se extraen los nombres de los tags si la API los envía
                     const tagsData = atributos.tags?.data || [];
                     const tagsExtraidos = tagsData.map(tag => {
-                        // Si la API logró expandir el tag, saca su nombre
                         if (tag.attributes && tag.attributes.name) return tag.attributes.name;
-                        // Si la API solo envió un ID de texto (ej: "ruby-on-rails")
                         if (typeof tag.id === 'string' && isNaN(tag.id)) return tag.id.replace(/-/g, ' ');
                         return '';
                     }).join(' ');
 
-                    // 2. Se agrupa todo (Textos del trabajo + Nombres de los Tags)
                     const textoCompleto = `
                         ${atributos.title || ''} 
                         ${atributos.description || ''} 
@@ -108,7 +123,6 @@ async function ejecutarPipelineGetOnBoard() {
                         ${tagsExtraidos}
                     `;
 
-                    // 3. Regex procesa el bloque y extrae sin duplicados
                     const tecnologias = extraerTecnologias(textoCompleto);
 
                     if (tecnologias.length > 0) {
@@ -132,6 +146,10 @@ async function ejecutarPipelineGetOnBoard() {
 
         await esperar(2000);
     }
+
+    // PASO 2: Antes de cerrar, ejecuta el barrido de ofertas antiguas
+    console.log("\nEjecutando mantenimiento de estado de ofertas...");
+    await marcarOfertasCerradas(horaInicioScript);
 
     console.log("\nPipeline de GetOnBoard finalizado con éxito.");
     await pool.end();
