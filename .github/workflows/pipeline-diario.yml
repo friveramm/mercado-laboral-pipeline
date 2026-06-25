@@ -23,7 +23,7 @@ jobs:
       - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
 
       # Instala las dependencias necesarias de forma explícita para asegurar consistencia
       - name: Instalar dependencias
