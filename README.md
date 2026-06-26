@@ -62,7 +62,8 @@ GIF muestra panel principal con gráficos de distribución, top de tecnologías 
 
   
 
-(ACÁ LA DEMO!)
+<img width="1080" height="608" alt="dashboard-demo" src="https://github.com/user-attachments/assets/c2f0664b-2def-4049-9a4f-3a2810057a2b" />
+
 
 </details>
 
