@@ -10,7 +10,7 @@
 
   
 
-Plataforma automatizada diseñada para extraer, procesar y visualizar ofertas de empleo tecnológico en Chile. El sistema integra ingesta de datos mediante Web Scraping y consumo de APIs REST, almacenamiento en una base de datos Serverless, y un dashboard analítico interactivo desplegado en la nube.
+Plataforma automatizada (DataOps) diseñada para extraer, procesar y visualizar ofertas de empleo tecnológico en Chile. El sistema integra ingesta de datos mediante Web Scraping (Chumi Jobs) y consumo de APIs REST (GetOnBoard), almacenamiento en una base de datos Serverless, y un dashboard analítico interactivo desplegado en la nube.
 
   
 
