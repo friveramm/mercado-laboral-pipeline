@@ -46,7 +46,7 @@ Plataforma automatizada diseñada para extraer, procesar y visualizar ofertas de
 
 **Accede al panel interactivo en vivo aquí:** [Mercado Laboral Pipeline - Streamlit App](https://mercado-laboral-pipeline.streamlit.app/)
 
-> **Nota de Infraestructura (Serverless Cold Start):** > Este proyecto utiliza servicios Cloud en capa gratuita (Neon.tech y Streamlit Community). Tras periodos de inactividad, los servidores entran en modo reposo (*scale-to-zero*). Si al ingresar por primera vez observas un error de dependencias o de conexión, **por favor recarga la página en un par de segundos**. Este es el comportamiento mientras los servicios despiertan.
+> **Nota de Infraestructura (Serverless Cold Start):** Este proyecto utiliza servicios Cloud en capa gratuita (Neon.tech y Streamlit Community). Tras periodos de inactividad, los servidores entran en modo reposo (*scale-to-zero*). Si al ingresar por primera vez observas un error de dependencias o de conexión, **por favor recarga la página en un par de segundos**. Este es el comportamiento mientras los servicios despiertan.
 
   
 
