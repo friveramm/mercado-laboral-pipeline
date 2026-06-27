@@ -81,7 +81,8 @@ GIF muestra la ejecución automatizada de los scripts de Node.js extrayendo, lim
 
   
 
-(ACÁ DEMO!)
+<img width="1080" height="608" alt="consola-demo" src="https://github.com/user-attachments/assets/f3f7d248-8b2c-4897-a0af-41acf8bdaf18" />
+
 
 </details>
 
