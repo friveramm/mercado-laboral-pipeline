@@ -124,7 +124,7 @@ Sigue estos pasos para auditar o ejecutar el proyecto en tu propio entorno:
 
 ```bash
 
-git clone [https://github.com/friveramm/mercado-laboral-pipeline.git](https://github.com/friveramm/mercado-laboral-pipeline.git)
+git clone https://github.com/friveramm/mercado-laboral-pipeline.git
 
 cd mercado-laboral-pipeline
 
