@@ -3,18 +3,14 @@
   
 
 ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
-
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 
   
 
-Plataforma automatizada diseñada para extraer, procesar y visualizar ofertas de empleo tecnológico en Chile. El sistema integra ingesta de datos mediante Web Scraping y consumo de APIs REST, almacenamiento en una base de datos Serverless, y un dashboard analítico interactivo desplegado en la nube.
+Plataforma automatizada (DataOps) diseñada para extraer, procesar y visualizar ofertas de empleo tecnológico en Chile. El sistema integra ingesta de datos mediante Web Scraping (Chumi Jobs) y consumo de APIs REST (GetOnBoard), almacenamiento en una base de datos Serverless, y un dashboard analítico interactivo desplegado en la nube.
 
   
 
@@ -50,7 +46,7 @@ Plataforma automatizada diseñada para extraer, procesar y visualizar ofertas de
 
 **Accede al panel interactivo en vivo aquí:** [Mercado Laboral Pipeline - Streamlit App](https://mercado-laboral-pipeline.streamlit.app/)
 
-> **Nota de Infraestructura (Serverless Cold Start):** > Este proyecto utiliza servicios Cloud en capa gratuita (Neon.tech y Streamlit Community). Tras periodos de inactividad, los servidores entran en modo reposo (*scale-to-zero*). Si al ingresar por primera vez observas un error de dependencias o de conexión, **por favor recarga la página en un par de segundos**. Este es el comportamiento mientras los servicios despiertan.
+> **Nota de Infraestructura (Serverless Cold Start):** Este proyecto utiliza servicios Cloud en capa gratuita (Neon.tech y Streamlit Community). Tras periodos de inactividad, los servidores entran en modo reposo (*scale-to-zero*). Si al ingresar por primera vez observas un error de dependencias o de conexión, **por favor recarga la página en un par de segundos**. Este es el comportamiento mientras los servicios despiertan.
 
   
 
@@ -66,7 +62,8 @@ GIF muestra panel principal con gráficos de distribución, top de tecnologías 
 
   
 
-(ACÁ LA DEMO!)
+<img width="1080" height="608" alt="dashboard-demo" src="https://github.com/user-attachments/assets/c2f0664b-2def-4049-9a4f-3a2810057a2b" />
+
 
 </details>
 
@@ -84,7 +81,8 @@ GIF muestra la ejecución automatizada de los scripts de Node.js extrayendo, lim
 
   
 
-(ACÁ DEMO!)
+<img width="1080" height="608" alt="consola-demo" src="https://github.com/user-attachments/assets/f3f7d248-8b2c-4897-a0af-41acf8bdaf18" />
+
 
 </details>
 
@@ -126,7 +124,7 @@ Sigue estos pasos para auditar o ejecutar el proyecto en tu propio entorno:
 
 ```bash
 
-git clone [https://github.com/friveramm/mercado-laboral-pipeline.git](https://github.com/friveramm/mercado-laboral-pipeline.git)
+git clone https://github.com/friveramm/mercado-laboral-pipeline.git
 
 cd mercado-laboral-pipeline
 
