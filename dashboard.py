@@ -152,8 +152,11 @@ if busqueda:
     # Mascara 2: Transforma el arreglo de tecnologias a texto y busca coincidencias
     mask_tech = df_main['tecnologias_requeridas'].astype(str).str.lower().str.contains(busqueda_lower, na=False)
     
-    # Aplica las mascaras usando el operador OR (|) y selecciona las columnas a mostrar
-    resultados = df_main[mask_titulo | mask_tech][['titulo', 'tecnologias_requeridas', 'url']].copy()
+    # Aplica las mascaras usando el operador OR (|) y selecciona las columnas, incluyendo la fecha
+    resultados = df_main[mask_titulo | mask_tech][['titulo', 'tecnologias_requeridas', 'url', 'fecha_extraccion', 'portal']].copy()
+    
+    # Ordena los resultados priorizando las ofertas mas recientes (descendente)
+    resultados = resultados.sort_values(by='fecha_extraccion', ascending=False)
     
     st.markdown(f"**Se encontraron {len(resultados)} resultados para '{busqueda}':**")
     st.markdown("---")
@@ -165,6 +168,9 @@ if busqueda:
             # Titulo de la oferta con link clickeable
             st.markdown(f"### [{row['titulo']}]({row['url']})")
             
+            # Formateo visual de la fecha para mejor UX
+            fecha_formateada = row['fecha_extraccion'].strftime('%d-%m-%Y') if pd.notnull(row['fecha_extraccion']) else "Fecha desconocida"
+            
             # Formateo visual de las tecnologias requeridas
             tecnologias = row['tecnologias_requeridas']
             if isinstance(tecnologias, list) and len(tecnologias) > 0:
@@ -172,5 +178,7 @@ if busqueda:
             else:
                 tags_visuales = "*No especificadas*"
                 
+            # Muestra el stack y metadatos adicionales (Fecha y Portal)
             st.markdown(f"**Stack solicitado:** {tags_visuales}")
+            st.caption(f"**Detectada el:** {fecha_formateada} | **Fuente:** {row['portal']}")
             st.divider() # Linea separadora entre ofertas
