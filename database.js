@@ -15,10 +15,33 @@ const pool = new Pool({
     }
 });
 
-// Verifica la conexión a la base de datos
-pool.on('connect', () => {
-    console.log('Conexion segura SSL establecida con PostgreSQL en la Nube.');
-});
+// Función de "Wake-Up Call" para controlar el Cold Start de BD serverless (como Neon.tech)
+async function despertarBaseDeDatos(reintentosMaximos = 5, esperaSegundos = 3) {
+    for (let intento = 1; intento <= reintentosMaximos; intento++) {
+        try {
+            console.log(`Intento ${intento}: Despertando PostgreSQL en Neon.tech...`);
+
+            // Ejecuta consulta básica para forzar la conexión
+            await pool.query('SELECT 1;');
+
+            console.log(`Conexion segura SSL establecida. Base de datos ACTIVA.`);
+            return true; // Éxito, sale del bucle
+
+        } catch (error) {
+            console.log(`El servidor aún no responde. Esperando ${esperaSegundos} segundos...`);
+            if (intento === reintentosMaximos) {
+                console.error(`Fallo crítico tras ${reintentosMaximos} intentos:`, error.message);
+                throw error; // Detiene todo si no despierta
+            }
+            // Pausa antes de volver a intentar
+            await new Promise(resolve => setTimeout(resolve, esperaSegundos * 1000));
+        }
+    }
+}
+
+// Interceptar la conexión para que ejecute el Wake-Up call 
+// justo cuando los módulos index.js o getonboard.js importen este archivo
+despertarBaseDeDatos().catch(() => process.exit(1));
 
 // Exporta el pool para ser utilizado en otros modulos
 module.exports = pool;
